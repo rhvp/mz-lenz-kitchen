@@ -10,7 +10,7 @@ exports.create = async(req, res, next) => {
     try {
         let { amount, products} = req.body;
         let customer_data = _.pick(req.body, ['firstname', 'lastname', 'email', 'phone', 'address']);
-        const customer = await Customer.findOne({email: customer_data.email});
+        let customer = await Customer.findOne({email: customer_data.email});
         if(!customer) customer = await Customer.create(customer_data);
         let orderData = {
             products,
@@ -18,7 +18,7 @@ exports.create = async(req, res, next) => {
             customer: customer._id
         }
         const order = await Order.create(orderData);
-        res.status(200).json({
+        res.status(201).json({
             status: 'success',
             message: 'Order Created',
             data: order
