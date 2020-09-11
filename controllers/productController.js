@@ -15,15 +15,15 @@ exports.create = async(req, res, next) => {
         let data = _.pick(req.body, ['name', 'description', 'price', 'published']);
         let {image} = req.body;
         const product = await Product.create(data);
+        
+        res.status(201).json({
+            status: 'success',
+            data: product
+        })
         cloudinary.uploader.upload(image, async(error, result)=>{
             if(error) console.log('Error uploading image', error)
             else console.log(result.secure_url);
             await Product.updateOne({_id: product._id}, {image: result.secure_url});
-        })
-        // add image upload to cloudinary
-        return res.status(201).json({
-            status: 'success',
-            data: product
         })
     } catch (error) {
         return next(error);
@@ -100,6 +100,10 @@ exports.edit = async(req, res, next) => {
         let {image} = req.body;
         const product = await Product.findByIdAndUpdate(req.params.id, update, {new: true});
         if(!product) return next(new AppError('Product not found', 404));
+        res.status(200).json({
+            status: 'success',
+            data: product
+        })
         if(image) {
             cloudinary.uploader.upload(image, async(error, result)=>{
                 if(error) console.log('Error uploading image', error)
@@ -107,10 +111,6 @@ exports.edit = async(req, res, next) => {
                 await Product.updateOne({_id: product._id}, {image: result.secure_url});
             })
         }
-        res.status(200).json({
-            status: 'success',
-            data: product
-        })
     } catch (error) {
         return next(error);
     }
