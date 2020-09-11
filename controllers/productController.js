@@ -2,12 +2,24 @@ const Product = require('../models/product');
 const AppError = require('../config/appError');
 const jwt = require('jsonwebtoken');
 const _ = require('underscore');
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+    cloud_name: 'intelligent-innovations',
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 exports.create = async(req, res, next) => {
     try {
-        let data = _.pick(req.body, ['name','description', 'price', 'stock', 'image']);
-        if(data.stock > 0) data.available = true;
+        let data = _.pick(req.body, ['name', 'description', 'price', 'published']);
+        let {image} = req.body;
         const product = await Product.create(data);
+        cloudinary.uploader.upload(image, async(error, result)=>{
+            if(error) console.log('Error uploading image', error)
+            else console.log(result.secure_url);
+            await Product.updateOne({_id: product._id}, {image: result.secure_url});
+        })
         // add image upload to cloudinary
         return res.status(201).json({
             status: 'success',
@@ -38,18 +50,12 @@ exports.findAll = async(req, res, next) => {
                 data: {...products}
             })
         })
-        // const products = await Product.find();
-        // return res.status(200).json({
-        //     status: 'success',
-        //     count: products.length,
-        //     data: products
-        // })
     } catch (error) {
         return next(error);
     }
 }
 
-exports.findAvailable = async(req, res, next) => {
+exports.findPublished = async(req, res, next) => {
     try {
         const customLabels = {
             docs: "products"
@@ -63,7 +69,7 @@ exports.findAvailable = async(req, res, next) => {
               locale: "en"
             }
         };
-        Product.paginate({available: true}, options, (err, products)=>{
+        Product.paginate({published: true}, options, (err, products)=>{
             res.status(200).json({
                 status: 'success',
                 data: {...products}
@@ -90,10 +96,17 @@ exports.fetch = async(req, res, next) => {
 
 exports.edit = async(req, res, next) => {
     try {
-        let update = _.pick(req.body, ['name','description', 'price', 'stock', 'available']);
+        let update = _.pick(req.body, ['name','description', 'price', 'published']);
+        let {image} = req.body;
         const product = await Product.findByIdAndUpdate(req.params.id, update, {new: true});
         if(!product) return next(new AppError('Product not found', 404));
-        
+        if(image) {
+            cloudinary.uploader.upload(image, async(error, result)=>{
+                if(error) console.log('Error uploading image', error)
+                else console.log(result.secure_url);
+                await Product.updateOne({_id: product._id}, {image: result.secure_url});
+            })
+        }
         res.status(200).json({
             status: 'success',
             data: product

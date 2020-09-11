@@ -7,7 +7,7 @@ router.route('/')
     .post(auth.userAuth, product.create)
     .get(product.findAll)
 
-router.get('/available', product.findAvailable)
+router.get('/published', product.findPublished)
 
 router.route('/:id')
     .patch(auth.userAuth, product.edit)
