@@ -3,7 +3,7 @@ const AppError = require('../config/appError');
 const Customer = require('../models/customer');
 const _ = require('underscore');
 const jwt = require('jsonwebtoken');
-
+const sendEmail = require('../config/nodemailer');
 
 
 exports.create = async(req, res, next) => {
@@ -23,6 +23,15 @@ exports.create = async(req, res, next) => {
             message: 'Order Created',
             data: order
         })
+        let msgOptions = {
+            email: customer.email,
+            from: 'Starter Pack <hello@9id.com.ng>',
+            subject: 'Order Recieved',
+            message: `<p>Hello ${customer.name},</p>
+            <p>Your order has been recieved and is currently being processed</p>
+            `
+        }
+        sendEmail(msgOptions).then(done=>console.log('Mail sent to customer')).catch(err=>console.log('Error sending email', err))
     } catch (error) {
         return next(error);
     }
