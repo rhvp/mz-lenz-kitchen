@@ -7,6 +7,8 @@ router.route('/')
     .post(auth.userAuth, product.create)
     .get(product.findAll)
 
+router.get('/get-by-category/:id', product.findByCategory)
+
 router.get('/published', product.findPublished)
 
 router.route('/:id')
