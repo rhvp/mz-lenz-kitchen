@@ -65,7 +65,21 @@ exports.getOrders = async(req, res, next) => {
 
 exports.fetchOrder = async(req, res, next) => {
     try {
-        const order = await Order.findById(req.params.id).populate('customer');
+        const order = await Order.findById(req.params.id).populate('customer products.product');
+        if(!order) return next(new AppError('Order not found', 404));
+        res.status(200).json({
+            status: 'success',
+            data: order
+        })
+    } catch (error) {
+        return next(error);
+    }
+}
+
+exports.updateStatus = async(req, res, next) => {
+    try {
+        let {status} = req.body;
+        const order = await Order.findByIdAndUpdate(req.params.id, {status: status}, {new: true});
         if(!order) return next(new AppError('Order not found', 404));
         res.status(200).json({
             status: 'success',
