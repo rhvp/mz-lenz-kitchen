@@ -13,7 +13,7 @@ cloudinary.config({
 
 exports.create = async(req, res, next) => {
     try {
-        let data = _.pick(req.body, ['name', 'description', 'price', 'published']);
+        let data = _.pick(req.body, ['name', 'description', 'price', 'published', 'category']);
         let {image} = req.body;
         const product = await Product.create(data);
         
@@ -125,7 +125,7 @@ exports.fetch = async(req, res, next) => {
 
 exports.edit = async(req, res, next) => {
     try {
-        let update = _.pick(req.body, ['name','description', 'price', 'published']);
+        let update = _.pick(req.body, ['name','description', 'price', 'published', 'category']);
         let {image} = req.body;
         const product = await Product.findByIdAndUpdate(req.params.id, update, {new: true});
         if(!product) return next(new AppError('Product not found', 404));
